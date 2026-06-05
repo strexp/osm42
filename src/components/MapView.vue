@@ -12,12 +12,13 @@ import {
 import StyleSwitcher from './StyleSwitcher.vue'
 import InspectControl from './InspectControl.vue'
 import GlobeControl from './GlobeControl.vue'
+import { useBackendStore } from '@/stores/backend'
 
 const map = useMap()
-const currentStyleUrl = ref('https://map-api.gensokyo.dn42/style/osm-bright')
 const isStyleDialogOpen = ref(false)
 const isLoading = ref(false)
 const isPWA = ref(false)
+const backendStore = useBackendStore()
 
 onMounted(() => {
   const mq = window.matchMedia(
@@ -32,7 +33,7 @@ onMounted(() => {
 })
 
 function onStyleSelected(url: string) {
-  currentStyleUrl.value = url
+  backendStore.backend = url
   if (map.map) {
     map.map.setStyle(url)
   }
@@ -42,7 +43,7 @@ function onStyleSelected(url: string) {
 <template>
   <div class="map-main">
     <MglMap
-      :mapStyle="currentStyleUrl"
+      :mapStyle="backendStore.backend"
       hash
       width="100vw"
       height="100vh"
