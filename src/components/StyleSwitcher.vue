@@ -6,7 +6,12 @@ const props = defineProps<{
 }>()
 const emit = defineEmits(['update:modelValue', 'style-selected'])
 
-const availableSources = ref(['https://map-api.gensokyo.dn42'])
+const availableSources = ref(
+  [
+    'https://map-api.gensokyo.dn42',
+    'https://osm.cowgl.dn42'
+  ]
+)
 const selectedSource = ref('https://map-api.gensokyo.dn42')
 const availableStyles = ref<string[]>([])
 const selectedStyle = ref('osm-bright')
