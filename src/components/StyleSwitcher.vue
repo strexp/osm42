@@ -9,7 +9,8 @@ const emit = defineEmits(['update:modelValue', 'style-selected'])
 const availableSources = ref(
   [
     'https://map-api.gensokyo.dn42',
-    'https://osm.cowgl.dn42'
+    'https://osm.cowgl.dn42',
+    'https://map-raster-api.gensokyo.dn42'
   ]
 )
 const selectedSource = ref('https://map-api.gensokyo.dn42')
