@@ -13,9 +13,11 @@ import StyleSwitcher from './StyleSwitcher.vue'
 import InspectControl from './InspectControl.vue'
 import GlobeControl from './GlobeControl.vue'
 import { useBackendStore } from '@/stores/backend'
+import LangSwitcher from './LangSwitcher.vue'
 
 const map = useMap()
 const isStyleDialogOpen = ref(false)
+const isLangDialogOpen = ref(false)
 const isLoading = ref(false)
 const isPWA = ref(false)
 const backendStore = useBackendStore()
@@ -31,6 +33,49 @@ onMounted(() => {
     isPWA.value = e.matches
   })
 })
+
+function updateNameExpression(expr: Array<Array<string>> | string, lang: string) {
+  if (Array.isArray(expr)) {
+    return expr.map((it) => {
+      if (it[0] != 'get' || !it[1]?.startsWith('name:') || !it[1]?.startsWith('name_')) return it
+      switch (lang) {
+        case '':
+          return it
+        case 'native':
+          return ['get', 'name:']
+        default:
+          return ['get', `name:${lang}`]
+      }
+    })
+  } else {
+    if (/^\{name[:_]([^}]*)\}$/g.test(expr))
+      switch (lang) {
+        case '':
+          return expr
+        case 'native':
+          return ['coalesce', ['get', 'name:']]
+        default:
+          return ['coalesce', ['get', `name:${lang}`], ['get', 'name']]
+      }
+    else return expr
+  }
+}
+
+function onLangSelected(lang: string) {
+  map.map?.getStyle().layers.forEach((layer) => {
+    if (map.map) {
+      if (layer.type === 'symbol') {
+        const currentTextField = map.map.getLayoutProperty(layer.id, 'text-field')
+        if (currentTextField) {
+          const newTextField = updateNameExpression(currentTextField, lang)
+          if (JSON.stringify(currentTextField) !== JSON.stringify(newTextField)) {
+            map.map.setLayoutProperty(layer.id, 'text-field', newTextField)
+          }
+        }
+      }
+    }
+  })
+}
 
 function onStyleSelected(url: string) {
   backendStore.backend = url
@@ -64,6 +109,15 @@ function onStyleSelected(url: string) {
           🗺️
         </button>
       </MglCustomControl>
+      <MglCustomControl position="top-right">
+        <button
+          class="maplibregl-ctrl-icon"
+          title="Style Settings"
+          @click="isLangDialogOpen = true"
+        >
+          t
+        </button>
+      </MglCustomControl>
       <InspectControl />
       <MglCustomControl v-if="isLoading" position="bottom-right">
         <button disabled class="maplibregl-ctrl-icon">
@@ -75,6 +129,7 @@ function onStyleSelected(url: string) {
     </MglMap>
 
     <StyleSwitcher v-model="isStyleDialogOpen" @style-selected="onStyleSelected" />
+    <LangSwitcher v-model="isLangDialogOpen" @lang-selected="onLangSelected" />
   </div>
 </template>
 
